@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const NotFound = () => (
   <div className="mt-5">
@@ -9,7 +9,7 @@ const NotFound = () => (
           <div className="col-md-12 text-center">
             <span className="display-1 d-block">404</span>
             <div className="mb-4 lead">Page inexistante.</div>
-            <Link to="/rooms" className="btn btn-lg btn-success">
+            <Link to="/" className="btn btn-lg btn-success">
               Revenir à l'acceuil
             </Link>
           </div>

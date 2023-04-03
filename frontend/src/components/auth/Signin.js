@@ -1,36 +1,29 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthService from '../../services/auth.service';
 import Spinner from '../shared/Spinner';
-function SignUp() {
+function SignIn() {
   const [loading, setLoading] = useState(false);
   const [successful, setSuccessful] = useState(false);
   const [errors, setErrors] = useState({ errors: [] });
   const userData = {
-    pseudo: null,
-    email: null,
+    username: null,
     password: null
   };
-  const [signupData, setSignupData] = useState(userData);
+  let navigate = useNavigate();
+
+  const [signinData, setSigninData] = useState(userData);
   const handleChange = (e) => {
-    setSignupData({ ...signupData, [e.target.id]: e.target.value });
+    setSigninData({ ...signinData, [e.target.id]: e.target.value });
   };
-  function validateEmail(email) {
-    const re =
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-  }
-  function validateuserData(signup) {
+  function validateuserData(signin) {
     const errorsForm = [];
-    const { pseudo, email, password } = signup;
+    const { username, password } = signin;
 
     if (!password) {
       errorsForm.push('Veuillez renseigner un mot de passe');
     }
-    if (!validateEmail(email)) {
-      errorsForm.push('Format email incorrect');
-    }
-    if (!pseudo) {
+    if (!username) {
       errorsForm.push('le pseudo est obligatoire ');
     }
     setErrors({ ...errors, errors: errorsForm });
@@ -41,29 +34,32 @@ function SignUp() {
     e.preventDefault();
 
     setLoading(true);
-    if (validateuserData(signupData)) {
-      AuthService.register(signupData)
+    if (validateuserData(signinData)) {
+      AuthService.login(signinData)
         .then((res) => {
-          if (res.data.status === 'SUCCESSFUL') {
+          if (res.data.access_token) {
+            setSuccessful(true);
+
             setTimeout(() => {
               setLoading(false);
-              setSuccessful(true);
-              window.location = '/signin';
+              AuthService.setToken(res.data.access_token);
+              navigate('/', { replace: true });
             }, 1500);
-          } else {
-            console.log('mess', res);
-            setLoading(false);
-            setErrors({ ...errors, errors: [res.data.message] });
           }
         })
         .catch((err) => {
           setLoading(false);
-          setErrors({ ...errors, errors: [err.message] });
+          if (err.message) {
+            setErrors({ ...errors, errors: [err.message] });
+          }
+          if (err.response.data) {
+            setErrors({ ...errors, errors: [err.response.data.description] });
+          }
         });
     }
     setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 1500);
   };
 
   return (
@@ -78,9 +74,9 @@ function SignUp() {
             ))}
           </div>
           <div hidden={!successful} className="w-50 mx-auto alert alert-success" role="alert">
-            Compte créé avec succès !
+            Connexion reussie !
           </div>
-          <h2 className="mb-4">Inscription</h2>
+          <h2 className="mb-4">Connexion</h2>
 
           <div className="row input-group ms-3  mb-2 justify-content-center">
             <div className="input-group-prepend col-auto px-0">
@@ -92,31 +88,14 @@ function SignUp() {
               <input
                 onChange={handleChange}
                 type="text"
-                id="pseudo"
+                id="username"
                 className="rounded-0 col-6 rounded-right form-control"
-                name="pseudo"
+                name="username"
                 placeholder="Pseudo"
               />
             </div>
           </div>
-          <div className="row input-group ms-3  mb-2 justify-content-center">
-            <div className="input-group-prepend col-auto px-0">
-              <span className="rounded-0 h-100 input-group-text">
-                <i className="text-primary fa fa-at"></i>
-              </span>
-            </div>
-            <div className="ps-0 col-6">
-              <input
-                type="email"
-                onChange={handleChange}
-                id="email"
-                className="p-2 form-control rounded-0"
-                name="email"
-                placeholder="Email"
-              />
-            </div>
-          </div>
-          <div className="row input-group ms-3  mb-2 justify-content-center">
+          <div className="row input-group ms-3  my-4 justify-content-center">
             <div className="input-group-prepend col-auto px-0">
               <span className="rounded-0 h-100 input-group-text">
                 <i className="text-primary fa-sharp fa-solid fa-lock"></i>
@@ -136,8 +115,7 @@ function SignUp() {
 
           <div className="ms-3 my-4 ">
             <button type="submit" className=" p-2 btn btn-primary btn-lg btn-block">
-              S'inscrire
-              <i className="ms-2 fa fa-paper-plane" aria-hidden="true"></i>
+              Se connecter
             </button>
           </div>
           <div className="text-center">
@@ -151,4 +129,4 @@ function SignUp() {
   );
 }
 
-export default SignUp;
+export default SignIn;
